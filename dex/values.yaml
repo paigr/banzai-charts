@@ -75,4 +75,64 @@ config:
   web:
     http: 0.0.0.0:5556
 
+  connectors:
+    - type: ldap
+      name: OpenLDAP
+      id: ldap
+      config:
+        host: 192.168.1.214:10389
+
+        # No TLS for this setup.
+        insecureNoSSL: true
+
+        # This would normally be a read-only user.
+        bindDN: cn=admin,dc=example,dc=org
+        bindPW: admin
+
+        usernamePrompt: Email Address
+
+        userSearch:
+          baseDN: ou=People,dc=example,dc=org
+          filter: "(objectClass=person)"
+          username: mail
+          # "DN" (case sensitive) is a special attribute name. It indicates that
+          # this value should be taken from the entity's DN not an attribute on
+          # the entity.
+          idAttr: DN
+          emailAttr: mail
+          nameAttr: cn
+
+        groupSearch:
+          baseDN: ou=Groups,dc=example,dc=org
+          filter: "(objectClass=groupOfNames)"
+
+          # A user is a member of a group when their DN matches
+          # the value of a "member" attribute on the group entity.
+          userAttr: DN
+          groupAttr: member
+
+          # The group name should be the "cn" value.
+          nameAttr: cn
+
+    - type: github
+      # Required field for connector id.
+      id: github
+      # Required field for connector name.
+      name: GitHub
+      config:
+        loadAllGroups: true
+        # Credentials can be string literals or pulled from the environment.
+        clientID: "4e4011da337338b5719b"
+        clientSecret: "8669643d4a65d75a41637ebe03ad0ab19a09498b"
+        redirectURI: http://127.0.0.1:5556/dex/callback
+
+  staticClients:
+  - id: example-app
+    redirectURIs:
+    - 'http://127.0.0.1:5555/callback'
+    - 'http://127.0.0.1:9000/auth/dex/callback'
+    - 'http://localhost:9000/auth/dex/callback'
+    name: 'Example App'
+    secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+
 nodeSelector: {}
